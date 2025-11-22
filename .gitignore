@@ -1,0 +1,122 @@
+# -----------------------
+# OS / Editor Files
+# -----------------------
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*.orig
+*.log
+
+.vscode/
+.idea/
+*.iml
+
+# -----------------------
+# Python
+# -----------------------
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.conda/
+.python-version
+
+# Distribution / packaging
+build/
+dist/
+downloads/
+.eggs/
+*.egg
+*.egg-info/
+MANIFEST
+
+# Testing / coverage
+.coverage
+.coverage.*
+.cache/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+htmlcov/
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Type checking / tooling
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Django / Flask / FastAPI / generic
+*.log
+local_settings.py
+instance/
+*.sqlite3
+db.sqlite3
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# -----------------------
+# Node / TypeScript / React
+# -----------------------
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json.*
+yarn.lock.*
+pnpm-lock.yaml.*
+
+# Build outputs
+dist/
+build/
+out/
+.tmp/
+
+# Next.js / Vite / CRA / similar
+.next/
+.vercel/
+.cache/
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+
+# -----------------------
+# Env / Secrets
+# -----------------------
+
+.env
+.env.*
+!.env.example
+*.secret
+*.pem
+*.key
+
+# -----------------------
+# Misc
+# -----------------------
+
+# Python tooling
+pip-wheel-metadata/
+pip-log.txt
+
+# Mac
+.AppleDouble
+.Spotlight-V100
+.Trashes
