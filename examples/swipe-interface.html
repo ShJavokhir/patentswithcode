@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swipe Match Interface</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Karla:wght@400;500;700&family=Pacifico&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --sunset-pink: #FFB3BA;
+      --sunset-peach: #FFDFBA;
+      --sunset-lavender: #E0BBE4;
+      --warm-coral: #FF6B6B;
+      --cool-teal: #4ECDC4;
+      --gold: #FFD700;
+      --cream: #FFF8F0;
+      --shadow: rgba(0, 0, 0, 0.15);
+      --deep-shadow: rgba(0, 0, 0, 0.25);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Karla', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      background: linear-gradient(135deg,
+        var(--sunset-pink) 0%,
+        var(--sunset-peach) 50%,
+        var(--sunset-lavender) 100%);
+      position: relative;
+    }
+
+    /* Animated background elements */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image:
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 182, 193, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(224, 187, 228, 0.1) 0%, transparent 50%);
+      animation: float 20s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+    }
+
+    #root {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 1;
+    }
+
+    .app-container {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .header {
+      margin-bottom: 30px;
+      text-align: center;
+    }
+
+    .app-title {
+      font-family: 'Pacifico', cursive;
+      font-size: 48px;
+      color: white;
+      text-shadow: 2px 2px 4px var(--shadow);
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .card-container {
+      position: relative;
+      width: 400px;
+      height: 600px;
+      perspective: 1000px;
+    }
+
+    .profile-card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow:
+        0 10px 40px var(--shadow),
+        0 0 0 8px rgba(255, 255, 255, 0.9),
+        0 0 0 12px rgba(0, 0, 0, 0.05);
+      cursor: grab;
+      user-select: none;
+      transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform-origin: center bottom;
+    }
+
+    .profile-card.dragging {
+      cursor: grabbing;
+      transition: none;
+    }
+
+    .profile-card.exit-left {
+      animation: slideOutLeft 0.3s ease-out forwards;
+    }
+
+    .profile-card.exit-right {
+      animation: slideOutRight 0.3s ease-out forwards;
+    }
+
+    @keyframes slideOutLeft {
+      to {
+        transform: translateX(-150%) rotate(-30deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes slideOutRight {
+      to {
+        transform: translateX(150%) rotate(30deg);
+        opacity: 0;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .photo-container {
+      width: 100%;
+      height: 420px;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+      background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+    }
+
+    .profile-photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .photo-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    }
+
+    .profile-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      font-weight: 700;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      margin-bottom: 5px;
+    }
+
+    .profile-age {
+      font-size: 24px;
+      color: white;
+      opacity: 0.9;
+    }
+
+    .profile-bio {
+      margin-top: 15px;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #333;
+      text-align: center;
+    }
+
+    .swipe-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .swipe-overlay.visible {
+      opacity: 1;
+    }
+
+    .swipe-text {
+      font-family: 'Pacifico', cursive;
+      font-size: 72px;
+      font-weight: 700;
+      text-shadow: 3px 3px 6px rgba(0,0,0,0.2);
+      transform: rotate(-30deg);
+    }
+
+    .swipe-text.like {
+      color: var(--warm-coral);
+      transform: rotate(30deg);
+    }
+
+    .swipe-text.nope {
+      color: var(--cool-teal);
+      transform: rotate(-30deg);
+    }
+
+    .action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    .action-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 4px 12px var(--shadow);
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      background: white;
+    }
+
+    .action-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px var(--deep-shadow);
+    }
+
+    .action-btn:active {
+      transform: scale(0.95);
+    }
+
+    .action-btn.dislike {
+      color: var(--cool-teal);
+    }
+
+    .action-btn.info {
+      color: var(--sunset-lavender);
+    }
+
+    .action-btn.like {
+      color: var(--warm-coral);
+    }
+
+    .match-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .match-content {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      width: 500px;
+      max-width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      position: relative;
+      overflow: hidden;
+    }
+
+    @keyframes scaleIn {
+      from {
+        transform: scale(0.8);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .match-content::before {
+      content: '✨';
+      position: absolute;
+      font-size: 100px;
+      top: -20px;
+      left: -20px;
+      opacity: 0.1;
+      animation: rotate 10s linear infinite;
+    }
+
+    .match-content::after {
+      content: '💕';
+      position: absolute;
+      font-size: 100px;
+      bottom: -20px;
+      right: -20px;
+      opacity: 0.1;
+      animation: rotate 10s linear infinite reverse;
+    }
+
+    @keyframes rotate {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .match-title {
+      font-family: 'Pacifico', cursive;
+      font-size: 48px;
+      color: var(--warm-coral);
+      margin-bottom: 30px;
+      text-shadow: 2px 2px 4px var(--shadow);
+    }
+
+    .match-photos {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .match-photo {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 5px solid var(--cream);
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .match-message {
+      font-size: 18px;
+      color: #666;
+      margin-bottom: 30px;
+      font-weight: 500;
+    }
+
+    .match-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+    }
+
+    .match-btn {
+      padding: 12px 30px;
+      border-radius: 25px;
+      border: none;
+      font-family: 'Karla', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px var(--shadow);
+    }
+
+    .match-btn.primary {
+      background: var(--warm-coral);
+      color: white;
+    }
+
+    .match-btn.secondary {
+      background: white;
+      color: #666;
+      border: 2px solid #e0e0e0;
+    }
+
+    .match-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px var(--deep-shadow);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: white;
+    }
+
+    .empty-state h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 36px;
+      margin-bottom: 15px;
+      text-shadow: 2px 2px 4px var(--shadow);
+    }
+
+    .empty-state p {
+      font-size: 18px;
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState, useEffect, useRef } = React;
+
+    // Mock profile data
+    const mockProfiles = [
+      {
+        id: 1,
+        name: "Sarah",
+        age: 28,
+        photo: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400&h=600&fit=crop",
+        bio: "Coffee enthusiast, hiking on weekends",
+        hasLikedCurrentUser: true
+      },
+      {
+        id: 2,
+        name: "Emma",
+        age: 26,
+        photo: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=600&fit=crop",
+        bio: "Photographer | Dog lover | Adventure seeker",
+        hasLikedCurrentUser: false
+      },
+      {
+        id: 3,
+        name: "Olivia",
+        age: 29,
+        photo: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=600&fit=crop",
+        bio: "Artist by day, stargazer by night",
+        hasLikedCurrentUser: true
+      },
+      {
+        id: 4,
+        name: "Sophia",
+        age: 27,
+        photo: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=400&h=600&fit=crop",
+        bio: "Yoga instructor | Plant parent | Beach bum",
+        hasLikedCurrentUser: false
+      },
+      {
+        id: 5,
+        name: "Isabella",
+        age: 30,
+        photo: "https://images.unsplash.com/photo-1488716820095-cbe80883c496?w=400&h=600&fit=crop",
+        bio: "Foodie exploring the city, one bite at a time",
+        hasLikedCurrentUser: true
+      },
+      {
+        id: 6,
+        name: "Mia",
+        age: 25,
+        photo: "https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=600&fit=crop",
+        bio: "Runner | Reader | Optimist",
+        hasLikedCurrentUser: false
+      },
+      {
+        id: 7,
+        name: "Charlotte",
+        age: 28,
+        photo: "https://images.unsplash.com/photo-1499952127939-9bbf5af6c51c?w=400&h=600&fit=crop",
+        bio: "Travel blogger | Culture enthusiast",
+        hasLikedCurrentUser: true
+      },
+      {
+        id: 8,
+        name: "Amelia",
+        age: 26,
+        photo: "https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=400&h=600&fit=crop",
+        bio: "Musician with a love for spontaneous road trips",
+        hasLikedCurrentUser: false
+      },
+      {
+        id: 9,
+        name: "Harper",
+        age: 29,
+        photo: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?w=400&h=600&fit=crop",
+        bio: "Chef | Wine lover | Sunset chaser",
+        hasLikedCurrentUser: true
+      },
+      {
+        id: 10,
+        name: "Evelyn",
+        age: 27,
+        photo: "https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=400&h=600&fit=crop",
+        bio: "Designer creating beautiful things",
+        hasLikedCurrentUser: false
+      },
+      {
+        id: 11,
+        name: "Abigail",
+        age: 28,
+        photo: "https://images.unsplash.com/photo-1506863530036-1efeddceb993?w=400&h=600&fit=crop",
+        bio: "Bookworm | Cat person | Tea addict",
+        hasLikedCurrentUser: true
+      },
+      {
+        id: 12,
+        name: "Emily",
+        age: 25,
+        photo: "https://images.unsplash.com/photo-1504439904031-93ded9f93e4e?w=400&h=600&fit=crop",
+        bio: "Dancing through life one song at a time",
+        hasLikedCurrentUser: false
+      },
+      {
+        id: 13,
+        name: "Elizabeth",
+        age: 30,
+        photo: "https://images.unsplash.com/photo-1509967419530-da38b4704bc6?w=400&h=600&fit=crop",
+        bio: "Entrepreneur | Fitness junkie | Brunch lover",
+        hasLikedCurrentUser: true
+      },
+      {
+        id: 14,
+        name: "Avery",
+        age: 26,
+        photo: "https://images.unsplash.com/photo-1521577352947-9bb58764b69a?w=400&h=600&fit=crop",
+        bio: "Movie buff | Sushi enthusiast | Optimist",
+        hasLikedCurrentUser: false
+      },
+      {
+        id: 15,
+        name: "Ella",
+        age: 27,
+        photo: "https://images.unsplash.com/photo-1520813792240-56fc4a3765a7?w=400&h=600&fit=crop",
+        bio: "Writer seeking inspiration everywhere",
+        hasLikedCurrentUser: true
+      }
+    ];
+
+    function ProfileCard({ profile, onSwipe, style, onDragStart, onDragMove, onDragEnd }) {
+      const [swipeDirection, setSwipeDirection] = useState(null);
+      const cardRef = useRef(null);
+      const dragStartRef = useRef({ x: 0, y: 0 });
+      const isDraggingRef = useRef(false);
+
+      const handleMouseDown = (e) => {
+        isDraggingRef.current = true;
+        dragStartRef.current = { x: e.clientX, y: e.clientY };
+        cardRef.current.classList.add('dragging');
+        onDragStart?.();
+      };
+
+      const handleTouchStart = (e) => {
+        isDraggingRef.current = true;
+        const touch = e.touches[0];
+        dragStartRef.current = { x: touch.clientX, y: touch.clientY };
+        cardRef.current.classList.add('dragging');
+        onDragStart?.();
+      };
+
+      const handleMouseMove = (e) => {
+        if (!isDraggingRef.current) return;
+
+        const deltaX = e.clientX - dragStartRef.current.x;
+        const deltaY = e.clientY - dragStartRef.current.y;
+        const rotation = deltaX * 0.1;
+
+        cardRef.current.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+
+        if (Math.abs(deltaX) > 50) {
+          setSwipeDirection(deltaX > 0 ? 'like' : 'nope');
+        } else {
+          setSwipeDirection(null);
+        }
+
+        onDragMove?.(deltaX, deltaY);
+      };
+
+      const handleTouchMove = (e) => {
+        if (!isDraggingRef.current) return;
+
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - dragStartRef.current.x;
+        const deltaY = touch.clientY - dragStartRef.current.y;
+        const rotation = deltaX * 0.1;
+
+        cardRef.current.style.transform = `translate(${deltaX}px, ${deltaY}px) rotate(${rotation}deg)`;
+
+        if (Math.abs(deltaX) > 50) {
+          setSwipeDirection(deltaX > 0 ? 'like' : 'nope');
+        } else {
+          setSwipeDirection(null);
+        }
+
+        onDragMove?.(deltaX, deltaY);
+      };
+
+      const handleMouseUp = (e) => {
+        if (!isDraggingRef.current) return;
+
+        const deltaX = e.clientX - dragStartRef.current.x;
+        isDraggingRef.current = false;
+        cardRef.current.classList.remove('dragging');
+
+        if (Math.abs(deltaX) > 80) {
+          const direction = deltaX > 0 ? 'like' : 'dislike';
+          cardRef.current.classList.add(deltaX > 0 ? 'exit-right' : 'exit-left');
+          setTimeout(() => onSwipe(direction), 300);
+        } else {
+          cardRef.current.style.transform = '';
+          setSwipeDirection(null);
+        }
+
+        onDragEnd?.();
+      };
+
+      const handleTouchEnd = (e) => {
+        if (!isDraggingRef.current) return;
+
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - dragStartRef.current.x;
+        isDraggingRef.current = false;
+        cardRef.current.classList.remove('dragging');
+
+        if (Math.abs(deltaX) > 80) {
+          const direction = deltaX > 0 ? 'like' : 'dislike';
+          cardRef.current.classList.add(deltaX > 0 ? 'exit-right' : 'exit-left');
+          setTimeout(() => onSwipe(direction), 300);
+        } else {
+          cardRef.current.style.transform = '';
+          setSwipeDirection(null);
+        }
+
+        onDragEnd?.();
+      };
+
+      useEffect(() => {
+        const card = cardRef.current;
+
+        card.addEventListener('mousemove', handleMouseMove);
+        card.addEventListener('mouseup', handleMouseUp);
+        card.addEventListener('mouseleave', handleMouseUp);
+        card.addEventListener('touchmove', handleTouchMove);
+        card.addEventListener('touchend', handleTouchEnd);
+
+        return () => {
+          card.removeEventListener('mousemove', handleMouseMove);
+          card.removeEventListener('mouseup', handleMouseUp);
+          card.removeEventListener('mouseleave', handleMouseUp);
+          card.removeEventListener('touchmove', handleTouchMove);
+          card.removeEventListener('touchend', handleTouchEnd);
+        };
+      }, []);
+
+      return (
+        <div
+          ref={cardRef}
+          className="profile-card"
+          style={style}
+          onMouseDown={handleMouseDown}
+          onTouchStart={handleTouchStart}
+        >
+          <div className="photo-container">
+            <img src={profile.photo} alt={profile.name} className="profile-photo" />
+            <div className="photo-overlay">
+              <div className="profile-name">
+                {profile.name} <span className="profile-age">{profile.age}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="profile-bio">{profile.bio}</div>
+
+          <div className={`swipe-overlay ${swipeDirection ? 'visible' : ''}`}>
+            <div className={`swipe-text ${swipeDirection}`}>
+              {swipeDirection === 'like' ? 'LIKE' : 'NOPE'}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function MatchModal({ currentUser, matchedProfile, onClose, onSendMessage }) {
+      return (
+        <div className="match-modal">
+          <div className="match-content">
+            <div className="match-title">It's a Match!</div>
+            <div className="match-photos">
+              <img
+                src={matchedProfile.photo}
+                alt={matchedProfile.name}
+                className="match-photo"
+              />
+              <img
+                src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop"
+                alt="You"
+                className="match-photo"
+              />
+            </div>
+            <div className="match-message">
+              You and {matchedProfile.name} have liked each other!
+            </div>
+            <div className="match-buttons">
+              <button className="match-btn primary" onClick={onSendMessage}>
+                Send Message
+              </button>
+              <button className="match-btn secondary" onClick={onClose}>
+                Keep Swiping
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function App() {
+      const [profiles, setProfiles] = useState(mockProfiles);
+      const [currentIndex, setCurrentIndex] = useState(0);
+      const [userSwipes, setUserSwipes] = useState({});
+      const [matches, setMatches] = useState([]);
+      const [showMatchModal, setShowMatchModal] = useState(false);
+      const [currentMatch, setCurrentMatch] = useState(null);
+
+      const handleSwipe = (direction) => {
+        const currentProfile = profiles[currentIndex];
+
+        // Record the swipe
+        setUserSwipes(prev => ({
+          ...prev,
+          [currentProfile.id]: direction
+        }));
+
+        // Check for mutual match
+        if (direction === 'like' && currentProfile.hasLikedCurrentUser) {
+          setCurrentMatch(currentProfile);
+          setMatches(prev => [...prev, currentProfile]);
+          setShowMatchModal(true);
+        }
+
+        // Move to next profile after animation
+        setTimeout(() => {
+          setCurrentIndex(prev => prev + 1);
+        }, 300);
+      };
+
+      const handleButtonClick = (action) => {
+        if (action === 'dislike') {
+          handleSwipe('dislike');
+        } else if (action === 'like') {
+          handleSwipe('like');
+        } else if (action === 'info') {
+          alert('Info feature coming soon!');
+        }
+      };
+
+      const currentProfile = profiles[currentIndex];
+      const hasMoreProfiles = currentIndex < profiles.length;
+
+      return (
+        <div className="app-container">
+          <div className="header">
+            <h1 className="app-title">Swipe</h1>
+          </div>
+
+          {hasMoreProfiles ? (
+            <>
+              <div className="card-container">
+                <ProfileCard
+                  key={currentProfile.id}
+                  profile={currentProfile}
+                  onSwipe={handleSwipe}
+                />
+              </div>
+
+              <div className="action-buttons">
+                <button
+                  className="action-btn dislike"
+                  onClick={() => handleButtonClick('dislike')}
+                >
+                  ✕
+                </button>
+                <button
+                  className="action-btn info"
+                  onClick={() => handleButtonClick('info')}
+                >
+                  i
+                </button>
+                <button
+                  className="action-btn like"
+                  onClick={() => handleButtonClick('like')}
+                >
+                  ♥
+                </button>
+              </div>
+            </>
+          ) : (
+            <div className="empty-state">
+              <h2>No more profiles</h2>
+              <p>Check back later for more matches!</p>
+            </div>
+          )}
+
+          {showMatchModal && currentMatch && (
+            <MatchModal
+              currentUser={{}}
+              matchedProfile={currentMatch}
+              onClose={() => setShowMatchModal(false)}
+              onSendMessage={() => {
+                alert(`Starting conversation with ${currentMatch.name}!`);
+                setShowMatchModal(false);
+              }}
+            />
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
