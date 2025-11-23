@@ -7,23 +7,28 @@ export default function Home() {
   const [isFocused, setIsFocused] = useState(false);
 
   const exampleSearches = [
+    'Tinder swipe UX',
     'pull to refresh',
     'pinch to zoom',
     'swipe to delete',
     'double tap to like',
-    'shake to undo',
   ];
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      console.log('Searching for:', query);
-      // TODO: Implement search
+      // For demo, navigate to results page
+      // In production, this would search and route based on results
+      window.location.href = '/results';
     }
   };
 
   const handleExampleClick = (example: string) => {
     setQuery(example);
+    // Auto-navigate to results for demo
+    setTimeout(() => {
+      window.location.href = '/results';
+    }, 300);
   };
 
   return (
