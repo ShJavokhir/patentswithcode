@@ -34,21 +34,42 @@ Generated specs and code are cached in Supabase to avoid regenerating popular pa
 /public              # Static assets
 ```
 
+## API Endpoints
+
+The backend FastAPI server (`patent-search/ps.py`) provides three endpoints:
+
+1. **POST /search** - Search for patents using Exa
+   - Request: `{"query": "your search term"}`
+   - Response: Top 10 Google Patents results with title, url, snippet
+   - Note: Query is automatically prefixed with "google patent"
+
+2. **POST /search-and-scrape** - Full pipeline (search + scrape)
+   - Request: `{"query": "your search term"}`
+   - Response: Full patent text extracted from found URL
+
+3. **POST /scrape** - Scrape specific patent URL
+   - Request: `{"url": "https://patents.google.com/patent/..."}`
+   - Response: Full patent text from the URL
+
 ## Setup
 
 ```bash
-# Install dependencies
-npm install
+# Install backend dependencies
+uv sync
 
-# Environment variables (.env.local)
-GROQ_API_KEY=
-E2B_API_KEY=
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
-MCP_HUB_CONFIG=
+# Install frontend dependencies
+cd frontend && npm install
 
-# Run development server
-npm run dev
+# Environment variables (.env.local in root)
+EXA_API_KEY=
+FIRECRAWL_API_KEY=
+OPENAI_API_KEY=
+
+# Run backend server (port 8000)
+python patent-search/ps.py
+
+# Run frontend (port 3000)
+cd frontend && npm run dev
 ```
 
 ## Limitations

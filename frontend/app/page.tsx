@@ -17,17 +17,16 @@ export default function Home() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
-      // For demo, navigate to results page
-      // In production, this would search and route based on results
-      window.location.href = '/results';
+      // Navigate to search results page with query
+      window.location.href = `/search-results?q=${encodeURIComponent(query)}`;
     }
   };
 
   const handleExampleClick = (example: string) => {
     setQuery(example);
-    // Auto-navigate to results for demo
+    // Auto-navigate to search results
     setTimeout(() => {
-      window.location.href = '/results';
+      window.location.href = `/search-results?q=${encodeURIComponent(example)}`;
     }, 300);
   };
 
@@ -121,7 +120,7 @@ export default function Home() {
             style={{ animation: 'fadeIn 1.5s ease-out' }}
           >
             <p className="font-mono">
-              Powered by Google Patents, Groq, Claude Code, and E2B
+              Powered by Google Patents, Claude Code, and E2B
             </p>
           </div>
         </div>
