@@ -120,3 +120,6 @@ pip-log.txt
 .AppleDouble
 .Spotlight-V100
 .Trashes
+
+# Claude editor
+.claude

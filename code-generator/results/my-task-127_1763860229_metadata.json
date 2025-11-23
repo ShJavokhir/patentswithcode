@@ -1,0 +1,9 @@
+{
+  "task_id": "my-task-127",
+  "status": "failed",
+  "specification": "Create extremely simple calculator with add, subtract, multiply, divide functions",
+  "s3_url": null,
+  "files_created": [],
+  "timestamp": "2025-11-22T17:10:28.987214",
+  "message_id": "50c8b460-130d-4183-b554-19ec9ff8f43e"
+}

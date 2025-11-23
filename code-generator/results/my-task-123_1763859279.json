@@ -1,0 +1,8 @@
+{
+  "task_id": "my-task-123",
+  "status": "failed",
+  "error": "object Sandbox can't be used in 'await' expression",
+  "specification": "Create a Python calculator with add, subtract, multiply, divide functions",
+  "timestamp": "2025-11-22T16:54:39.985170",
+  "message_id": "a2e7d37f-78da-4399-97d3-090fd2d68fa9"
+}
