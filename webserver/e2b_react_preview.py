@@ -6,7 +6,7 @@ from e2b_code_interpreter import Sandbox
 import os
 import dotenv
 
-dotenv.load_dotenv(".env.local")
+dotenv.load_dotenv("../.env.local")
 
 HTML_TEMPLATE = """<!DOCTYPE html>
 <html>
