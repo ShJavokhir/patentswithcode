@@ -43,7 +43,7 @@ The backend FastAPI server (`patent-search/ps.py`) provides three endpoints:
    - Response: Top 10 Google Patents results with title, url, snippet
    - Note: Query is automatically prefixed with "google patent"
 
-2. **POST /search-and-scrape** - Full pipeline (search + scrape)
+2. **POST /search-and-scrape** - Full pipeline (Exa search + Firecrawl v2 scrape + formatted patent text)
    - Request: `{"query": "your search term"}`
    - Response: Full patent text extracted from found URL
 
@@ -83,3 +83,20 @@ cd frontend && npm run dev
 ## Notes
 
 All patents (expired and active) are included. The project visualizes publicly available patent documents as interactive demos to make technical innovations more accessible. Generated code is not production-ready and exists solely to illustrate patented concepts.
+
+## Firecrawl API compatibility
+
+Both scraping routes use `POST https://api.firecrawl.dev/v2/scrape` directly,
+request markdown with `onlyMainContent: true`, and read `data.markdown` from the
+response. `/search-and-scrape` uses the first URL returned by the existing Exa
+search, then formats the scraped patent text using OpenAI. It no longer creates
+an E2B sandbox with an unversioned Firecrawl MCP server. E2B remains in use for
+code execution. No new API keys or environment settings are required.
+
+Run the offline regression tests (no provider requests or credits consumed):
+
+```bash
+uv run --frozen python -m unittest discover -s tests -v
+```
+
+API reference: https://docs.firecrawl.dev/api-reference/endpoint/scrape
