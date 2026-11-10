@@ -88,8 +88,12 @@ All patents (expired and active) are included. The project visualizes publicly a
 
 Both scraping routes use `POST https://api.firecrawl.dev/v2/scrape` directly,
 request markdown with `onlyMainContent: true`, and read `data.markdown` from the
-response. `/search-and-scrape` uses the first URL returned by the existing Exa
-search, then formats the scraped patent text using OpenAI. It no longer creates
+response. `/search-and-scrape` asks OpenAI to choose the most relevant validated
+Google Patents candidate from the existing Exa search results, scrapes that URL,
+then formats the patent text using OpenAI. A missing match returns 404; an invalid
+model selection returns 502 without scraping. Search is a single Exa request,
+with one model selection and one formatting call, rather than an unbounded MCP
+tool loop. It no longer creates
 an E2B sandbox with an unversioned Firecrawl MCP server. E2B remains in use for
 code execution. No new API keys or environment settings are required.
 
